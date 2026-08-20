@@ -1,21 +1,21 @@
 # Amazon bestseller categories to track daily.
 # Add/remove entries here as your category focus changes.
 categories:
-  - name: "Men's Clothing & Accessories (Overall)"
+  - name: "Bestsellers in Men's Clothing"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968024031/"
   - name: "Trunks"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968134031/"
-  - name: "Category 1968135031"
+  - name: "Vests"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968135031/"
-  - name: "Category 1968128031"
+  - name: "Briefs"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968128031/"
-  - name: "Category 1968097031"
+  - name: "Shorts"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968097031/"
-  - name: "Category 1968082031"
+  - name: "Loungewear"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968082031/"
-  - name: "Category 1968117031"
+  - name: "Swimwear"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968117031/"
-  - name: "Category 1968120031"
+  - name: "Tees & Polos"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968120031/"
 
 # Rename the "Category ####" entries above to their real category names
@@ -27,7 +27,7 @@ watch:
   brand_title_keywords:
     - "XYXX"
   asins:
-    []  # e.g. ["B0ABCD1234", "B0EFGH5678"] -- fill in once you know them
+    ["B08V56NV1B", "B0B5GYS4YC", "B0DXPPCRJQ", "B0F9L7F3PQ", "B08W9PNQM5", "B0C5CVGNHY", "B0B5GZCZ5N", "B07HL66LTH", "B0B5F6FBL6", "B07HL44DPS", "B08WHWZV9B", "B0B5HVZ7G4", "B0B5HVZ7G4", "B07KXX1S4B", "B07XMC6R8Y", "B0BZW8W1ZN", "B07QLXYT3L", "B0CXTB8LDD", "B08W8LJ17H", "B09YRT12JH", "B0C5CVGNHY", "B07D4HMLR4", "B07F8NQDQ1", "B0H2VJ69WJ", "B0BSL4G9B6", "B0CYC6BN8P", "B0F9PFD5TS", "B0CZL9H7J5", "B0CBBDWJH9"]  # e.g. ["B0ABCD1234", "B0EFGH5678"] -- fill in once you know them
 
 # Alert thresholds -- only these trigger a Slack ping, everything else
 # still gets logged to CSV for the weekly trend view.
