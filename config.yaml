@@ -1,0 +1,37 @@
+# Amazon bestseller categories to track daily.
+# Add/remove entries here as your category focus changes.
+categories:
+  - name: "Men's Clothing & Accessories (Overall)"
+    url: "https://www.amazon.in/gp/bestsellers/apparel/1968024031/"
+  - name: "Trunks"
+    url: "https://www.amazon.in/gp/bestsellers/apparel/1968134031/"
+  - name: "Category 1968135031"
+    url: "https://www.amazon.in/gp/bestsellers/apparel/1968135031/"
+  - name: "Category 1968128031"
+    url: "https://www.amazon.in/gp/bestsellers/apparel/1968128031/"
+  - name: "Category 1968097031"
+    url: "https://www.amazon.in/gp/bestsellers/apparel/1968097031/"
+  - name: "Category 1968082031"
+    url: "https://www.amazon.in/gp/bestsellers/apparel/1968082031/"
+  - name: "Category 1968117031"
+    url: "https://www.amazon.in/gp/bestsellers/apparel/1968117031/"
+  - name: "Category 1968120031"
+    url: "https://www.amazon.in/gp/bestsellers/apparel/1968120031/"
+
+# Rename the "Category ####" entries above to their real category names
+# (e.g. "Boxers", "Innerwear Sets") once you confirm them on the site.
+
+# How we identify your brand's listings in the results.
+# Title matching is a fallback -- ASINs are far more reliable if you have them.
+watch:
+  brand_title_keywords:
+    - "XYXX"
+  asins:
+    []  # e.g. ["B0ABCD1234", "B0EFGH5678"] -- fill in once you know them
+
+# Alert thresholds -- only these trigger a Slack ping, everything else
+# still gets logged to CSV for the weekly trend view.
+alerts:
+  rank_move_threshold: 5       # notify if rank moves by this much or more
+  notify_on_top_n_exit: [20, 50]  # notify if brand drops out of these tiers
+  notify_on_new_top_n_entry: [5, 10, 20]  # notify if brand newly enters these tiers

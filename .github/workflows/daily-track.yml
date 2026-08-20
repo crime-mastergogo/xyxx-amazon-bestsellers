@@ -1,0 +1,38 @@
+name: Daily bestseller tracker
+
+on:
+  schedule:
+    # 09:00 IST = 03:30 UTC
+    - cron: "30 3 * * *"
+  workflow_dispatch: {}  # lets you trigger a manual run from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tracker
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python main.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "bestseller-tracker-bot"
+          git config user.email "actions@github.com"
+          git add data/rankings.csv
+          git diff --staged --quiet || git commit -m "Daily rankings update: $(date -u +%Y-%m-%d)"
+          git push
