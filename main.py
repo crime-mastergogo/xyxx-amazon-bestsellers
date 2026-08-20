@@ -73,33 +73,35 @@ def parse_bestseller_page(html):
     """
     Parses a bestseller listing page into a list of dicts.
 
-    NOTE: These selectors target Amazon's current (as of writing) bestseller
-    grid layout. This is the single most likely piece to break -- if
-    `items` comes back empty, open the page in a browser, inspect an
-    item card, and update the selectors below to match.
+    Each product sits inside a wrapper div carrying a `data-asin` attribute,
+    which is the most reliable way to get the ASIN (no URL-parsing needed).
+    The rank badge is a sibling of the product card within that same wrapper.
+    Confirmed against real Amazon.in bestseller pages on 2026-08-20 -- if
+    this ever returns 0 items again, Amazon has likely changed the layout
+    and these selectors need re-checking the same way (inspect a real page's
+    HTML and find the new class names).
     """
     soup = BeautifulSoup(html, "html.parser")
     items = []
 
-    cards = soup.select("div.zg-grid-general-faceout, div#gridItemRoot, li.zg-item-immersion")
-    for card in cards:
+    wrappers = soup.select("div[data-asin]")
+    for wrapper in wrappers:
         try:
-            rank_el = card.select_one("span.zg-badge-text")
+            asin = wrapper.get("data-asin")
+            if not asin:
+                continue
+
+            rank_el = wrapper.select_one("span.zg-bdg-text")
             rank = None
             if rank_el:
                 rank = int("".join(ch for ch in rank_el.get_text() if ch.isdigit()) or 0)
 
-            link_el = card.select_one("a.a-link-normal")
-            title_el = card.select_one("div._cDEzb_p13n-sc-css-line-clamp-3_g3dy1, .p13n-sc-truncate, span.a-size-small")
-            price_el = card.select_one("span.p13n-sc-price, span.a-color-price")
-            rating_el = card.select_one("span.a-icon-alt")
-            review_el = card.select_one("span.a-size-small.a-color-secondary")
-
-            asin = None
-            if link_el and link_el.get("href"):
-                href = link_el["href"]
-                if "/dp/" in href:
-                    asin = href.split("/dp/")[1].split("/")[0].split("?")[0]
+            title_el = wrapper.select_one(
+                "div._cDEzb_p13n-sc-css-line-clamp-3_g3dy1, .p13n-sc-truncate"
+            )
+            price_el = wrapper.select_one("span.a-color-price")
+            rating_el = wrapper.select_one("span.a-icon-alt")
+            review_el = wrapper.select_one("div.a-icon-row span.a-size-small")
 
             title = title_el.get_text(strip=True) if title_el else None
 
