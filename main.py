@@ -45,11 +45,23 @@ def load_config():
         return yaml.safe_load(f)
 
 
+DEBUG_DIR = os.path.join(os.path.dirname(__file__), "debug_html")
+
+
 def fetch_page(url, page_num=1):
     full_url = url if page_num == 1 else f"{url.rstrip('/')}/?pg={page_num}"
     resp = requests.get(full_url, headers=HEADERS, timeout=20)
+    print(f"  -> {full_url} responded with status {resp.status_code}, {len(resp.text)} bytes")
     resp.raise_for_status()
     return resp.text
+
+
+def save_debug_html(category_name, page_num, html):
+    os.makedirs(DEBUG_DIR, exist_ok=True)
+    safe_name = "".join(c if c.isalnum() else "_" for c in category_name)
+    path = os.path.join(DEBUG_DIR, f"{safe_name}_page{page_num}.html")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(html)
 
 
 def looks_like_captcha(html):
@@ -118,12 +130,16 @@ def scrape_category(name, url):
             print(f"  ! request failed for {name} page {page}: {e}", file=sys.stderr)
             break
 
+        save_debug_html(name, page, html)
+
         if looks_like_captcha(html):
             print(f"  ! got a CAPTCHA/block page for {name} page {page} -- skipping", file=sys.stderr)
             break
 
         items = parse_bestseller_page(html)
         if not items:
+            print(f"  ! selectors matched 0 items for {name} page {page} -- "
+                  f"see debug_html/ artifact to inspect the raw page", file=sys.stderr)
             break
         all_items.extend(items)
         time.sleep(2)  # be gentle between requests
