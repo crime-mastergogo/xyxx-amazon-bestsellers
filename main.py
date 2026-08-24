@@ -177,23 +177,26 @@ def migrate_csv_if_needed():
 
 def append_to_csv(rows):
     """
-    Replaces any existing rows for today's date rather than piling on
-    duplicates. This matters if the workflow ever runs more than once on
-    the same day (a manual re-run, a retry, etc.) -- without this, a
-    second run would leave two mismatched snapshots for the same date,
-    which corrupts the weekly dashboard and trend calculations.
+    Replaces existing rows for (date, category) pairs this run actually
+    got fresh data for -- not the whole day. This matters because Amazon
+    sometimes blocks a subset of categories on a given run (returning 0
+    items for them) while others succeed. Replacing the entire day would
+    wipe out previously-good data for the categories that failed this
+    time; replacing only the categories present in this run's results
+    leaves everything else untouched.
     """
     migrate_csv_if_needed()
     if not rows:
         return
 
-    today = rows[0]["date"]
+    scraped_today = {(r["date"], r["category"]) for r in rows}
     existing_rows = read_all_csv()
-    kept_rows = [r for r in existing_rows if r["date"] != today]
+    kept_rows = [r for r in existing_rows if (r["date"], r["category"]) not in scraped_today]
 
     dropped = len(existing_rows) - len(kept_rows)
     if dropped:
-        print(f"Replacing {dropped} existing row(s) already logged for {today} with this run's fresh data.")
+        cats = sorted({c for (_, c) in scraped_today})
+        print(f"Replacing {dropped} existing row(s) for today's successfully-scraped categories: {cats}")
 
     with open(CSV_PATH, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
