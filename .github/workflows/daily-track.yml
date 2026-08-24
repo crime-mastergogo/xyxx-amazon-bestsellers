@@ -29,6 +29,15 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: python main.py
 
+      - name: Generate dashboard (weekly, Mondays only)
+        run: |
+          if [ "$(date -u +%u)" = "1" ]; then
+            echo "Monday -- generating this week's dashboard."
+            python generate_dashboard.py
+          else
+            echo "Not Monday -- skipping dashboard generation, scraping data only."
+          fi
+
       - name: Upload debug HTML (for troubleshooting)
         if: always()
         uses: actions/upload-artifact@v4
@@ -42,6 +51,6 @@ jobs:
         run: |
           git config user.name "bestseller-tracker-bot"
           git config user.email "actions@github.com"
-          git add data/rankings.csv
+          git add data/rankings.csv docs/
           git diff --staged --quiet || git commit -m "Daily rankings update: $(date -u +%Y-%m-%d)"
           git push

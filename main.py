@@ -36,7 +36,7 @@ HEADERS = {
 }
 
 CSV_PATH = os.path.join(os.path.dirname(__file__), "data", "rankings.csv")
-CSV_FIELDS = ["date", "category", "rank", "asin", "title", "price", "rating", "review_count"]
+CSV_FIELDS = ["date", "category", "rank", "asin", "title", "price", "rating", "review_count", "image_url"]
 
 
 def load_config():
@@ -102,6 +102,7 @@ def parse_bestseller_page(html):
             price_el = wrapper.select_one("span.a-color-price")
             rating_el = wrapper.select_one("span.a-icon-alt")
             review_el = wrapper.select_one("div.a-icon-row span.a-size-small")
+            img_el = wrapper.select_one("img")
 
             title = title_el.get_text(strip=True) if title_el else None
 
@@ -115,6 +116,7 @@ def parse_bestseller_page(html):
                 "price": price_el.get_text(strip=True) if price_el else "",
                 "rating": rating_el.get_text(strip=True) if rating_el else "",
                 "review_count": review_el.get_text(strip=True) if review_el else "",
+                "image_url": img_el.get("src") if img_el else "",
             })
         except Exception as e:
             print(f"  ! skipped one card due to parse error: {e}", file=sys.stderr)
@@ -149,7 +151,32 @@ def scrape_category(name, url):
     return all_items
 
 
+def migrate_csv_if_needed():
+    """
+    Adds any new columns (like image_url) to an existing CSV file that
+    predates them, backfilling old rows with empty values. Safe to run
+    every time -- it's a no-op if the file already matches CSV_FIELDS.
+    """
+    if not os.path.exists(CSV_PATH):
+        return
+    with open(CSV_PATH, "r", newline="") as f:
+        reader = csv.DictReader(f)
+        existing_fields = reader.fieldnames or []
+        rows = list(reader)
+
+    if existing_fields == CSV_FIELDS:
+        return  # already up to date
+
+    print(f"Migrating rankings.csv schema: {existing_fields} -> {CSV_FIELDS}")
+    with open(CSV_PATH, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({field: row.get(field, "") for field in CSV_FIELDS})
+
+
 def append_to_csv(rows):
+    migrate_csv_if_needed()
     file_exists = os.path.exists(CSV_PATH)
     with open(CSV_PATH, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
@@ -218,7 +245,8 @@ def build_digest(today_str, categories, today_rows, all_rows, watch_cfg, alert_c
                     any_alert = True
                     change_note += f" 🎉 entered top {tier}"
 
-            lines.append(f"\n*{cat_name}*: #{rank} — {row['title'][:60]}{change_note}")
+            product_url = f"https://www.amazon.in/dp/{row['asin']}"
+            lines.append(f"\n*{cat_name}*: #{rank} — <{product_url}|{row['title']}>{change_note}")
 
     lines.append(f"\n_Logged {len(today_rows)} listings across {len(categories)} categories._")
     return "\n".join(lines), any_alert
@@ -254,6 +282,7 @@ def main():
                 "price": item["price"],
                 "rating": item["rating"],
                 "review_count": item["review_count"],
+                "image_url": item["image_url"],
             })
 
     if today_rows:
