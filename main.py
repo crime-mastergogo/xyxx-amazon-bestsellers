@@ -176,12 +176,29 @@ def migrate_csv_if_needed():
 
 
 def append_to_csv(rows):
+    """
+    Replaces any existing rows for today's date rather than piling on
+    duplicates. This matters if the workflow ever runs more than once on
+    the same day (a manual re-run, a retry, etc.) -- without this, a
+    second run would leave two mismatched snapshots for the same date,
+    which corrupts the weekly dashboard and trend calculations.
+    """
     migrate_csv_if_needed()
-    file_exists = os.path.exists(CSV_PATH)
-    with open(CSV_PATH, "a", newline="") as f:
+    if not rows:
+        return
+
+    today = rows[0]["date"]
+    existing_rows = read_all_csv()
+    kept_rows = [r for r in existing_rows if r["date"] != today]
+
+    dropped = len(existing_rows) - len(kept_rows)
+    if dropped:
+        print(f"Replacing {dropped} existing row(s) already logged for {today} with this run's fresh data.")
+
+    with open(CSV_PATH, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
-        if not file_exists:
-            writer.writeheader()
+        writer.writeheader()
+        writer.writerows(kept_rows)
         writer.writerows(rows)
 
 
