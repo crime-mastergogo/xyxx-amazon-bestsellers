@@ -15,8 +15,10 @@ categories:
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968082031/"
   - name: "Swimwear"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968117031/"
-  - name: "Tees & Polos"
-    url: "https://www.amazon.in/gp/bestsellers/apparel/1968120031/"
+  - name: "Polos"
+    url: "https://www.amazon.in/gp/bestsellers/apparel/1968122031"
+ - name: "Tees"
+    url: "https://www.amazon.in/gp/bestsellers/apparel/1968123031"
 
 # Rename the "Category ####" entries above to their real category names
 # (e.g. "Boxers", "Innerwear Sets") once you confirm them on the site.
