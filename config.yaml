@@ -17,7 +17,7 @@ categories:
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968117031/"
   - name: "Polos"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968122031"
- - name: "Tees"
+  - name: "Tees"
     url: "https://www.amazon.in/gp/bestsellers/apparel/1968123031"
 
 # Rename the "Category ####" entries above to their real category names
