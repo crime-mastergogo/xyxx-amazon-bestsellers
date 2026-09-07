@@ -74,26 +74,39 @@ def build_week_data(rows, watch_cfg, num_days=7):
 
     categories = []
     for cat_name, cat_rows in by_category.items():
-        watched_by_asin = defaultdict(dict)
-        meta_by_asin = {}
+        watched_by_title = defaultdict(dict)  # title -> {date: rank}
+        meta_by_title_by_date = defaultdict(dict)  # title -> {date: row} (for asin/image per day)
         for r in cat_rows:
             if r["date"] not in week_dates or not is_watched(r, watch_cfg):
                 continue
-            watched_by_asin[r["asin"]][r["date"]] = int(r["rank"])
-            meta_by_asin[r["asin"]] = r
+            title = r["title"]
+            rank = int(r["rank"])
+            existing_rank = watched_by_title[title].get(r["date"])
+            # Amazon occasionally serves the same listing under two different
+            # ASINs (a mid-week ASIN swap, or a duplicate variant). Grouping
+            # by title keeps this as one continuous row; if both somehow show
+            # up on the same day, keep whichever ranked better.
+            if existing_rank is None or rank < existing_rank:
+                watched_by_title[title][r["date"]] = rank
+                meta_by_title_by_date[title][r["date"]] = r
 
         movement_rows = []
-        for asin, day_ranks in watched_by_asin.items():
-            meta = meta_by_asin[asin]
+        for title, day_ranks in watched_by_title.items():
             ranks_in_order = [day_ranks.get(d) for d in week_dates]
             first_seen = next((rk for rk in ranks_in_order if rk is not None), None)
             last_seen = next((rk for rk in reversed(ranks_in_order) if rk is not None), None)
             trend = None
             if first_seen is not None and last_seen is not None and first_seen != last_seen:
                 trend = first_seen - last_seen
+
+            # Use whichever ASIN/image was live on the most recent day we saw
+            # this title, so the product link points at the currently-active listing.
+            latest_day_with_data = next((d for d in reversed(week_dates) if d in meta_by_title_by_date[title]), None)
+            meta = meta_by_title_by_date[title][latest_day_with_data]
+
             movement_rows.append({
-                "asin": asin,
-                "title": meta["title"],
+                "asin": meta["asin"],
+                "title": title,
                 "image_url": meta.get("image_url", ""),
                 "day_ranks": ranks_in_order,
                 "latest_rank": last_seen,
